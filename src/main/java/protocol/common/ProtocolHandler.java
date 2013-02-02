@@ -19,8 +19,8 @@ public class ProtocolHandler extends SimpleChannelHandler {
 
     //    static final String FIRST_LINE_REGEX = "DO\\s{1}[\\w/_-]*";
     //    static final String HEADER_REGEX = "[\\w/_-]*:\\s{1}[\\w-]*";
-    static final String FIRST_LINE_REGEX = "DO\\s[\\w/_-]*";
-    static final String HEADER_REGEX = "[\\w/_-]*:\\s[\\w-]*";
+    public static final String FIRST_LINE_REGEX = "DO\\s[\\w/_-]*";
+    public static final String HEADER_REGEX = "[\\w/_-]*:\\s[\\w-]*";
 
     private ProtocolMessage bufferMessage;
 
@@ -67,7 +67,6 @@ public class ProtocolHandler extends SimpleChannelHandler {
         }
     }
 
-
     private ProtocolMessage resetBufferMessage() {
         ProtocolMessage message = this.bufferMessage;
         this.bufferMessage = null;
@@ -81,10 +80,10 @@ public class ProtocolHandler extends SimpleChannelHandler {
     }
 
     private void addHeader(String headerLine) {
+        // TODO validate headerLine before split and add
         String[] keyValue = headerLine.split(": ");
         this.bufferMessage.addHeader(keyValue[0], keyValue[1]);
     }
-
 
     private void protocolError(ChannelHandlerContext ctx, MessageEvent e,
                                String parameter) {
