@@ -8,6 +8,7 @@ import org.jboss.netty.handler.timeout.IdleStateAwareChannelHandler;
 import org.jboss.netty.handler.timeout.IdleStateEvent;
 import org.slf4j.LoggerFactory;
 import protocol.common.ProtocolMessage;
+import protocol.common.ProtocolMessageFactory;
 
 /**
  * Created with IntelliJ IDEA.
@@ -20,28 +21,22 @@ public class ProtocolServerHandler extends IdleStateAwareChannelHandler {
     private static final org.slf4j.Logger log =
             LoggerFactory.getLogger(ProtocolServerHandler.class);
 
-    @Override
-    public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e) {
+    public void protocolMessageReceived(ChannelHandlerContext ctx,
+                                        ProtocolMessage message) {
+
+        log.debug("Received message " + message.toString() + " from " +
+                ctx.getChannel().getRemoteAddress());
+
+        String hashString = generateParameterHashString(message.getParameter());
+        ProtocolMessage responseMessage =
+                ProtocolMessageFactory.createResponse(hashString);
+
+        sendProtocolMessage(ctx, responseMessage);
 
     }
 
-    @Override
-    public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
-
-        if (e.getMessage() instanceof ProtocolMessage) {
-            protocolMessageReceived(ctx, (ProtocolMessage) e.getMessage());
-        }
-    }
-
-    public void protocolMessageReceived(ChannelHandlerContext ctx, ProtocolMessage message) {
-
-        log.debug("Received message " + message.toString() + " from " + ctx.getChannel().getRemoteAddress());
-
-        sendProtocolMessage(ctx, message);
-
-    }
-
-    public void sendProtocolMessage(ChannelHandlerContext ctx, ProtocolMessage message) {
+    public void sendProtocolMessage(ChannelHandlerContext ctx,
+                                    ProtocolMessage message) {
 
         ChannelFuture channelFuture = ctx.getChannel().write(message);
 
@@ -53,15 +48,24 @@ public class ProtocolServerHandler extends IdleStateAwareChannelHandler {
         });
     }
 
-    public int generateParameterHash(String parameter) {
+    public String generateParameterHashString(String parameter) {
         HashFunction hashFunction = Hashing.md5();
         HashCode hash = hashFunction.newHasher().putString(parameter).hash();
-        return hash.asInt();
+        return String.valueOf(hash.asInt());
+    }
+
+    @Override
+    public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
+
+        if (e.getMessage() instanceof ProtocolMessage) {
+            protocolMessageReceived(ctx, (ProtocolMessage) e.getMessage());
+        }
     }
 
     @Override
     public void channelIdle(ChannelHandlerContext ctx, IdleStateEvent e) {
-        log.warn("IdleAlarm! Closing channel " + e.getChannel().getRemoteAddress());
+        log.warn("IdleAlarm! Closing channel " +
+                e.getChannel().getRemoteAddress());
         e.getChannel().close();
     }
 
@@ -72,12 +76,15 @@ public class ProtocolServerHandler extends IdleStateAwareChannelHandler {
     }
 
     @Override
-    public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) {
-        log.debug("Connected to: " + ctx.getChannel().getRemoteAddress().toString());
+    public void channelConnected(ChannelHandlerContext ctx,
+                                 ChannelStateEvent e) {
+        log.debug("Connected to: " +
+                ctx.getChannel().getRemoteAddress().toString());
     }
 
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) {
-        log.debug("Channel closed: " + ctx.getChannel().getRemoteAddress().toString());
+        log.debug("Channel closed: " +
+                ctx.getChannel().getRemoteAddress().toString());
     }
 }
