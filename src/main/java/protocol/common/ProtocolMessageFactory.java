@@ -8,17 +8,20 @@ package protocol.common;
  */
 public class ProtocolMessageFactory {
 
-    static ProtocolMessage createBadProtocolMessage(String parameter) {
+    // TODO create additional factory methods
+    // (e.g. ProtocolMessage with header)
+
+    public static ProtocolMessage createBadProtocolMessage(String parameter) {
         return new ProtocolMessage(ProtocolMessage.MessageType.BAD_REQUEST,
                 parameter);
     }
 
-    static ProtocolMessage createResponse(String parameter) {
+    public static ProtocolMessage createResponse(String parameter) {
         return new ProtocolMessage(ProtocolMessage.MessageType.RESPONSE,
                 parameter);
     }
 
-    static ProtocolMessage createRequest(String parameter) {
+    public static ProtocolMessage createRequest(String parameter) {
         return new ProtocolMessage(ProtocolMessage.MessageType.REQUEST,
                 parameter);
     }
