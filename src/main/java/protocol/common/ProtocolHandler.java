@@ -19,9 +19,9 @@ public class ProtocolHandler extends SimpleChannelHandler {
     private static final org.slf4j.Logger log =
             LoggerFactory.getLogger(ProtocolHandler.class);
 
-    private static final Pattern FIRST_LINE_REGEX =
+    public static final Pattern FIRST_LINE_REGEX =
             Pattern.compile("(DO)\\s+([\\w/_-]+)");
-    private static final Pattern HEADER_REGEX =
+    public static final Pattern HEADER_REGEX =
             Pattern.compile("([\\w-]+):\\s+([\\w/_-]+)");
 
     private ProtocolMessage bufferMessage;
