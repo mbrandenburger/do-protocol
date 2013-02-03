@@ -1,6 +1,5 @@
 package protocol.server;
 
-import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import org.jboss.netty.channel.*;
@@ -21,10 +20,11 @@ public class ProtocolServerHandler extends IdleStateAwareChannelHandler {
     private static final org.slf4j.Logger log =
             LoggerFactory.getLogger(ProtocolServerHandler.class);
 
+    private final HashFunction hashFunction = Hashing.md5();
+
     public void protocolMessageReceived(ChannelHandlerContext ctx,
                                         ProtocolMessage message) {
-
-        log.debug("Received message " + message.toString() + " from " +
+        log.debug("Received message " + message.getParameter() + " from " +
                 ctx.getChannel().getRemoteAddress());
 
         String hashString = generateParameterHashString(message.getParameter());
@@ -38,7 +38,8 @@ public class ProtocolServerHandler extends IdleStateAwareChannelHandler {
     public void sendProtocolMessage(ChannelHandlerContext ctx,
                                     ProtocolMessage message) {
 
-        ChannelFuture channelFuture = ctx.getChannel().write(message);
+        ChannelFuture channelFuture =
+                ctx.getChannel().write(message);
 
         channelFuture.addListener(new ChannelFutureListener() {
             public void operationComplete(ChannelFuture future) {
@@ -49,14 +50,12 @@ public class ProtocolServerHandler extends IdleStateAwareChannelHandler {
     }
 
     public String generateParameterHashString(String parameter) {
-        HashFunction hashFunction = Hashing.md5();
-        HashCode hash = hashFunction.newHasher().putString(parameter).hash();
-        return String.valueOf(hash.asInt());
+        return this.hashFunction.newHasher().putString(parameter).hash()
+                .toString();
     }
 
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
-
         if (e.getMessage() instanceof ProtocolMessage) {
             protocolMessageReceived(ctx, (ProtocolMessage) e.getMessage());
         }
