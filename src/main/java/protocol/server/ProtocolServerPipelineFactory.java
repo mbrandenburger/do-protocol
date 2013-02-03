@@ -47,7 +47,7 @@ public class ProtocolServerPipelineFactory implements ChannelPipelineFactory {
                 new DelimiterBasedFrameDecoder(MAX_FRAME_LENGTH,
                         FRAME_DELIMITER));
         pipeline.addLast("str_decoder", new StringDecoder(STRING_CHARSET));
-        pipeline.addLast("str_encoder", new  StringEncoder(STRING_CHARSET));
+        pipeline.addLast("str_encoder", new StringEncoder(STRING_CHARSET));
         pipeline.addLast("idleTimer",
                 new IdleStateHandler(this.idleTimer, READ_TIMEOUT,
                         WRITE_TIMEOUT, ALL_TIMEOUT));
