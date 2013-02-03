@@ -27,6 +27,10 @@ public class ProtocolServer extends AbstractService {
     private static final org.slf4j.Logger log =
             LoggerFactory.getLogger(ProtocolServer.class);
 
+    // such parameters could be outsourced in some kind of configuration file
+    private final int CONNTECT_TIMEOUT = 5000;
+    private final boolean KEEP_ALIVE = false;
+
     private Timer channelIdelTimer = new HashedWheelTimer();
 
     private ChannelGroup allChannels;
@@ -40,7 +44,9 @@ public class ProtocolServer extends AbstractService {
     private int port;
 
     public ProtocolServer(String serverName, String host, int port) {
-        // TODO validate arguments
+
+        // Host and port validation is provided by netty,
+        // so not needed at this point
         this.serverName = serverName;
         this.host = host;
         this.port = port;
@@ -59,15 +65,15 @@ public class ProtocolServer extends AbstractService {
             ServerBootstrap bootstrap =
                     new ServerBootstrap(this.channelFactory);
             bootstrap.setPipelineFactory(this.channelPipelineFactory);
-            bootstrap.setOption("child.keepAlive", false);
-            bootstrap.setOption("connectTimeoutMillis", 5000);
+            bootstrap.setOption("child.keepAlive", KEEP_ALIVE);
+            bootstrap.setOption("connectTimeoutMillis", CONNTECT_TIMEOUT);
 
             Channel channel =
                     bootstrap.bind(new InetSocketAddress(this.host, this.port));
             this.allChannels.add(channel);
 
             notifyStarted();
-            log.info("Listening on " + port + " ...");
+            log.info("Listening on " + this.port + " ...");
 
         } catch (Exception e) {
             notifyFailed(e);
