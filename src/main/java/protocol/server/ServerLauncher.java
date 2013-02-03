@@ -39,14 +39,15 @@ public class ServerLauncher {
             }
 
             if (cmd.hasOption("host")) {
-                host = cmd.getOptionValue("port");
+                host = cmd.getOptionValue("host");
             }
 
             if (cmd.hasOption("port")) {
                 port = Integer.parseInt(cmd.getOptionValue("port"));
             }
 
-        } catch (ParseException e) {
+        } catch (Exception e) {
+            System.out.println("Invalid Argument:");
             showUsage(options);
         }
 
@@ -58,9 +59,12 @@ public class ServerLauncher {
             log.error("Server could not be started");
             System.exit(1);
         }
+
+        // shutdown hook for controlled shutdown e.g. release netty resources
         Thread shutdownHook = new Thread() {
             @Override
             public void run() {
+                this.setName("Shutdown hook");
                 server.stop();
                 log.info("Done!");
             }
