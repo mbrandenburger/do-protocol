@@ -20,7 +20,7 @@ public class ProtocolHandler extends SimpleChannelHandler {
             LoggerFactory.getLogger(ProtocolHandler.class);
 
     private static final Pattern FIRST_LINE_REGEX =
-            Pattern.compile("DO\\s+([\\w/_-]+)");
+            Pattern.compile("(DO)\\s+([\\w/_-]+)");
     private static final Pattern HEADER_REGEX =
             Pattern.compile("([\\w-]+):\\s+([\\w/_-]+)");
 
@@ -52,8 +52,10 @@ public class ProtocolHandler extends SimpleChannelHandler {
         if (this.bufferMessage == null) {
             Matcher matcher = FIRST_LINE_REGEX.matcher((String) e.getMessage());
             if (matcher.matches()) {
+                // group(1) = DO
+                // group(2) = Paramter
                 this.bufferMessage =
-                        ProtocolMessageFactory.createRequest(matcher.group(1));
+                        ProtocolMessageFactory.createRequest(matcher.group(2));
             } else {
                 // first line does not match expression
                 protocolError(ctx, "Invalid protocol exception");
@@ -68,6 +70,8 @@ public class ProtocolHandler extends SimpleChannelHandler {
             } else {
                 Matcher matcher = HEADER_REGEX.matcher(headerLine);
                 if (matcher.matches()) {
+                    // group(1) = Key
+                    // group(2) = Value
                     this.bufferMessage
                             .addHeader(matcher.group(1), matcher.group(2));
                 } else {
