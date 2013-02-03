@@ -77,6 +77,10 @@ Used frameworks
 - Apache Commons CLI http://commons.apache.org/cli/
 - Simple Logging Facade for Java http://www.slf4j.org/
 
+
+Resources
+===========
+
 http://www.ibr.cs.tu-bs.de/courses/ss12/vs/index.html
 https://netty.io/Documentation/WebHome
 http://static.netty.io/3.6/guide/
