@@ -28,8 +28,8 @@ Specification:
         2. The first line starts with literal text 'DO' (without quotes),
         followed by one or more spaces (character 0x20), then a string (called
         parameter) consisting of characters in range [a-zA-Z0-9/_-] (upper and
-        lower english characters, backslash, underscore, and a dash). The line
-        ends with the line terminator.
+        lower english characters, slash, underscore, and a dash). The line ends
+        with the line terminator.
 
         3. Subsequent lines represents the header. Each header line starts with
         a header name, that consists of string of characters in range
