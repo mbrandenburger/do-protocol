@@ -1,8 +1,6 @@
 package protocol.common;
 
-import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableMap;
-
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,6 +9,12 @@ import java.util.Map;
  * User: marcus
  * Date: 2/1/13
  * Time: 8:40 PM
+ */
+
+/**
+ * A Protocol message which has a message type, a parameter and optional
+ * headers. It provides a serialization method to meet given requirements.
+ *
  */
 public class ProtocolMessage {
 
@@ -30,82 +34,97 @@ public class ProtocolMessage {
         }
     }
 
-
-    protected MessageType type = null;
-    protected String parameter = null;
-    protected Map<String, String> headers = null;
+    private final MessageType type;
+    private final String parameter;
+    private final Map<String, String> headers = new HashMap<String, String>();
 
     public ProtocolMessage(MessageType type, String parameter) {
+
+        if (type == null) {
+            throw new IllegalArgumentException(
+                    "'Message type' must not be null");
+        }
+        if (parameter == null) {
+            throw new IllegalArgumentException(
+                    "'Message parameter' must not be null");
+        }
+
         this.type = type;
         this.parameter = parameter;
-        this.headers = new HashMap<String, String>();
     }
 
+    /**
+     * Returns message type.
+     *
+     * @see MessageType
+     * @return message type
+     */
     public MessageType getType() {
         return type;
     }
 
-    public String getTypeAsString() {
-        return type.getValue();
-    }
-
+    /**
+     * Returns message parameter. It is the parameter of the first line.
+     *
+     * @return message parameter as string
+     */
     public String getParameter() {
         return this.parameter;
     }
 
-    // If key already exists, the old value is replaced.
+    /**
+     * Returns all message headers as unmodifiable map.
+     *
+     * @return a map of headers
+     */
+    public Map<String, String> getHeaders() {
+        return Collections.unmodifiableMap(this.headers);
+    }
+
+    /**
+     * Adds a header a the protocol message.
+     * If key already exists, the old value is replaced.
+     *
+     * @param key   a header key
+     * @param value the associated value
+     */
     public void addHeader(String key, String value) {
         this.headers.put(key, value);
     }
 
-    public Map<String, String> getHeaders() {
-        return ImmutableMap.copyOf(this.headers);
-    }
+    /**
+     * Serializes the protocol message to a string as followed:
+     *
+     * TYPE Parameter\n
+     * Key: Value\n
+     * Key: Value\n
+     * ...
+     * \n
+     *
+     * @return serialized protocol message
+     */
+    public String serialize() {
 
-    @Override
-    public boolean equals(Object obj) {
+        // To increase flexibility of this class we could parametrize the
+        // header separator and line terminator
 
-        if (obj != null && getClass() != obj.getClass()) {
-            return false;
-        }
-
-        final ProtocolMessage other = (ProtocolMessage) obj;
-
-        // TODO for simplicity at this point only message parameter compared
-        return Objects.equal(this.parameter, other.parameter);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(this.parameter, this.headers);
-    }
-
-    @Override
-    public String toString() {
-        Objects.ToStringHelper stringHelper =
-                Objects.toStringHelper(this).addValue(this.parameter);
-
-        for (Map.Entry<String, String> entry : this.headers.entrySet()) {
-            stringHelper.addValue(entry.toString());
-        }
-        return stringHelper.toString();
-    }
-
-    public String toStringMessage() {
-        StringBuilder stringMessageBuilder =
-                new StringBuilder().append(this.getTypeAsString()).append(" ")
-                        .append(this.parameter).append("\n");
+        StringBuilder sb = new StringBuilder();
+        sb.append(this.getType().getValue());
+        sb.append(" ");
+        sb.append(this.parameter);
+        sb.append("\n");
 
         if (!this.headers.isEmpty()) {
             for (Map.Entry<String, String> entry : this.headers.entrySet()) {
-                stringMessageBuilder.append(entry.getKey()).append(": ")
-                        .append(entry.getValue()).append("\n");
+                sb.append(entry.getKey());
+                sb.append(": ");
+                sb.append(entry.getValue());
+                sb.append("\n");
             }
-            stringMessageBuilder.append("\n");
         }
+        sb.append("\n");
 
-        return stringMessageBuilder.toString();
+        return sb.toString();
     }
-
 
 }
