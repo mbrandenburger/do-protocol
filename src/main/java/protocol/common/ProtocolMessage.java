@@ -49,6 +49,7 @@ public class ProtocolMessage {
                     "'Message parameter' must not be null");
         }
 
+        // TODO validate parameter for [a-zA-Z0-9/_-]
         this.type = type;
         this.parameter = parameter;
     }
@@ -89,6 +90,7 @@ public class ProtocolMessage {
      * @param value the associated value
      */
     public void addHeader(String key, String value) {
+        // TODO validate key for [a-zA-Z0-9-] and value for [a-zA-Z0-9/_-]
         this.headers.put(key, value);
     }
 
