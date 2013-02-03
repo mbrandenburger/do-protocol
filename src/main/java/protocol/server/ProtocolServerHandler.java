@@ -24,6 +24,11 @@ public class ProtocolServerHandler extends IdleStateAwareChannelHandler {
 
     public void protocolMessageReceived(ChannelHandlerContext ctx,
                                         ProtocolMessage message) {
+
+        // This is our business logic. It receives a ProtocolMessage m and
+        // generate a hash string of m.parameter. This hash string will be send
+        // as a response Message to our client
+
         log.debug("Received message " + message.getParameter() + " from " +
                 ctx.getChannel().getRemoteAddress());
 
@@ -38,8 +43,11 @@ public class ProtocolServerHandler extends IdleStateAwareChannelHandler {
     public void sendProtocolMessage(ChannelHandlerContext ctx,
                                     ProtocolMessage message) {
 
-        ChannelFuture channelFuture =
-                ctx.getChannel().write(message);
+        // Sends a ProtocolMessage to next layer and after successful transfer
+        // it will close the connection. In this case the next layer is the
+        // ProtocolHandler
+
+        ChannelFuture channelFuture = ctx.getChannel().write(message);
 
         channelFuture.addListener(new ChannelFutureListener() {
             public void operationComplete(ChannelFuture future) {
@@ -49,13 +57,24 @@ public class ProtocolServerHandler extends IdleStateAwareChannelHandler {
         });
     }
 
-    public String generateParameterHashString(String parameter) {
-        return this.hashFunction.newHasher().putString(parameter).hash()
-                .toString();
+    private String generateParameterHashString(String parameter) {
+
+        // Return a hash as string of a given parameter using
+        // Googles guava MD5 Hashing.
+        //
+        // For detailed information see:
+        // https://code.google.com/p/guava-libraries/wiki/HashingExplained
+
+        return this.hashFunction.hashString(parameter).toString();
     }
 
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
+
+        // Received messages from above layer, in this case ProtocolHandler
+        // If received message is really a ProtocolMessage forward it to our
+        // business logic
+
         if (e.getMessage() instanceof ProtocolMessage) {
             protocolMessageReceived(ctx, (ProtocolMessage) e.getMessage());
         }
