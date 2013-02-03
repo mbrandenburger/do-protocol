@@ -7,7 +7,6 @@ Simple DO protocol server, very similar to the HTTP protocol.
 TODOs
 ===========
 
-- Make some unit tests
 - Test on different machines
 - Test with different request messages
 
@@ -57,6 +56,7 @@ Run server:
     java -jar target/do-protocol-server-1.0-SNAPSHOT
 
 * or use host and port parameter
+
     java -jar target/do-protocol-server-1.0-SNAPSHOT --port=$port$ --host=$host$
 
 
@@ -66,7 +66,7 @@ Test using netcat:
 For simple testing using netcat.
 
     nc localhost 1337
-    nc -c localhost 1337 for \r\n testing
+    nc -c localhost 1337 for line terminator (\r\n) testing
 
 
 Used frameworks
@@ -102,3 +102,4 @@ http://docs.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html
 http://www.regexplanet.com/advanced/java/index.html
 https://code.google.com/p/guava-libraries/wiki/HashingExplained
 http://docs.guava-libraries.googlecode.com/git-history/release/javadoc/com/google/common/util/concurrent/AbstractService.html
+http://maven.apache.org/surefire/maven-surefire-plugin/examples/junit.html
