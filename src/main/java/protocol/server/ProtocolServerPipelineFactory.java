@@ -1,11 +1,11 @@
 package protocol.server;
 
 import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.handler.codec.frame.DelimiterBasedFrameDecoder;
-import org.jboss.netty.handler.codec.frame.Delimiters;
 import org.jboss.netty.handler.codec.string.StringDecoder;
 import org.jboss.netty.handler.codec.string.StringEncoder;
 import org.jboss.netty.handler.timeout.IdleStateHandler;
@@ -24,9 +24,19 @@ import java.nio.charset.Charset;
 
 public class ProtocolServerPipelineFactory implements ChannelPipelineFactory {
 
-    private final int MAX_FRAME_LENGTH = 4096;
-    private final ChannelBuffer[] FRAME_DELIMITER = Delimiters.lineDelimiter();
+    private final int MAX_LINE_LENGTH = 4096;
     private final Charset STRING_CHARSET = CharsetUtil.UTF_8;
+
+    // The delimiter \n would accomplish the specification, but is not
+    // recommended. In the case that the client use \r\n as line terminator,
+    // our server would response with Bad Protocol messages.
+    //
+    // Therefore, using Nettys lineDelimiter is recommanded.
+    //private final ChannelBuffer[] LINE_DELIMITER = Delimiters.lineDelimiter();
+
+    private final ChannelBuffer[] LINE_DELIMITER =
+            new ChannelBuffer[]{ChannelBuffers.wrappedBuffer(new byte[]{'\n'})};
+
 
     // Timeouts in seconds
     private final int READ_TIMEOUT = 0;
@@ -42,10 +52,18 @@ public class ProtocolServerPipelineFactory implements ChannelPipelineFactory {
     @Override
     public ChannelPipeline getPipeline() throws Exception {
 
+        // Incoming flow:
+        // incoming -> framer -> string decoder -> idle timer
+        // -> protocol handler -> protocol server handler
+        //
+        // Outgoing flow:
+        // protocol server handler -> protocol handler -> idle Timer
+        // -> string encoder
+
         ChannelPipeline pipeline = Channels.pipeline();
         pipeline.addLast("framer",
-                new DelimiterBasedFrameDecoder(MAX_FRAME_LENGTH,
-                        FRAME_DELIMITER));
+                new DelimiterBasedFrameDecoder(MAX_LINE_LENGTH,
+                        LINE_DELIMITER));
         pipeline.addLast("str_decoder", new StringDecoder(STRING_CHARSET));
         pipeline.addLast("str_encoder", new StringEncoder(STRING_CHARSET));
         pipeline.addLast("idleTimer",
