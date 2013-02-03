@@ -22,12 +22,13 @@ public class ProtocolServerHandler extends IdleStateAwareChannelHandler {
 
     private final HashFunction hashFunction = Hashing.md5();
 
-    public void protocolMessageReceived(ChannelHandlerContext ctx,
+    private void protocolMessageReceived(ChannelHandlerContext ctx,
                                         ProtocolMessage message) {
 
-        // This is our business logic. It receives a ProtocolMessage m and
-        // generate a hash string of m.parameter. This hash string will be send
-        // as a response Message to our client
+        // This is our business logic. It receives a message and generate a hash
+        // string of its parameter. This hash string will be send as a response
+        // Message to our client. After successful transmitting or failure, the
+        // connection will be closed.
 
         log.debug("Received message " + message.getParameter() + " from " +
                 ctx.getChannel().getRemoteAddress());
@@ -36,25 +37,18 @@ public class ProtocolServerHandler extends IdleStateAwareChannelHandler {
         ProtocolMessage responseMessage =
                 ProtocolMessageFactory.createResponse(hashString);
 
-        sendProtocolMessage(ctx, responseMessage);
-
+        ChannelFuture channelFuture = sendProtocolMessage(ctx, responseMessage);
+        channelFuture.addListener(ChannelFutureListener.CLOSE);
+        channelFuture.addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
     }
 
-    public void sendProtocolMessage(ChannelHandlerContext ctx,
+    private ChannelFuture sendProtocolMessage(ChannelHandlerContext ctx,
                                     ProtocolMessage message) {
 
-        // Sends a ProtocolMessage to next layer and after successful transfer
-        // it will close the connection. In this case the next layer is the
+        // Forward a ProtocolMessage to the next layer. In our case it is the
         // ProtocolHandler
 
-        ChannelFuture channelFuture = ctx.getChannel().write(message);
-
-        channelFuture.addListener(new ChannelFutureListener() {
-            public void operationComplete(ChannelFuture future) {
-                Channel channel = future.getChannel();
-                channel.close();
-            }
-        });
+        return ctx.getChannel().write(message);
     }
 
     private String generateParameterHashString(String parameter) {
@@ -71,7 +65,7 @@ public class ProtocolServerHandler extends IdleStateAwareChannelHandler {
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
 
-        // Received messages from above layer, in this case ProtocolHandler
+        // Received messages from lower layer, in this case ProtocolHandler
         // If received message is really a ProtocolMessage forward it to our
         // business logic
 
@@ -89,8 +83,7 @@ public class ProtocolServerHandler extends IdleStateAwareChannelHandler {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
-        log.warn("Unexpected exception", e.getCause());
-        e.getChannel().close();
+        log.warn("Unexpected exception", e.getCause().getMessage());
     }
 
     @Override
