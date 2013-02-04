@@ -63,10 +63,32 @@ Run server:
 Test using netcat:
 ===========
 
-For simple testing using netcat.
+For simple testing using netcat: http://en.wikipedia.org/wiki/Netcat
 
     nc localhost 1337
     nc -c localhost 1337 for line terminator (\r\n) testing
+
+Example:
+
+    [01:36 AM] do-protocol$ echo -ne "" | nc localhost 1337
+
+    [01:36 AM] do-protocol$ echo -ne "\n" | nc localhost 1337
+    BAD Invalid protocol exception
+
+    [01:36 AM] do-protocol$ echo -ne "\n\n" | nc localhost 1337
+    BAD Invalid protocol exception
+
+    [01:32 AM] do-protocol$ echo -ne "DO hallo\n\n" | nc localhost 1337
+    DONE 911b33ba90678bee998f75bb510757d1
+
+    [01:32 AM] do-protocol$ echo -ne "DO hallo\r\n" | nc localhost 1337
+    BAD Invalid protocol exception
+
+    [01:32 AM] do-protocol$ echo -ne "do hallo\n\n" | nc localhost 1337
+    BAD Invalid protocol exception
+
+    [01:33 AM] do-protocol$ echo -ne "DO hallo\nkey: value\n\n" | nc localhost 1337
+    DONE 911b33ba90678bee998f75bb510757d1
 
 
 Used frameworks
