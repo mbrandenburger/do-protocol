@@ -6,5 +6,6 @@ do
     nc cloud2.ibr.cs.tu-bs.de 8037 &
     echo -ne 'WRONG Message\n\n' | nc cloud2.ibr.cs.tu-bs.de 8037 &
     echo -ne 'DO hello\nKey: Wrong^&&^Value\n\n' | nc cloud2.ibr.cs.tu-bs.de 8037 &
+    sleep 0.25s
 
 done
