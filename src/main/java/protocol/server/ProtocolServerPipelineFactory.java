@@ -62,7 +62,7 @@ public class ProtocolServerPipelineFactory implements ChannelPipelineFactory {
 
         ChannelPipeline pipeline = Channels.pipeline();
         pipeline.addLast("framer",
-                new DelimiterBasedFrameDecoder(MAX_LINE_LENGTH,
+                new DelimiterBasedFrameDecoder(MAX_LINE_LENGTH, true, true,
                         LINE_DELIMITER));
         pipeline.addLast("str_decoder", new StringDecoder(STRING_CHARSET));
         pipeline.addLast("str_encoder", new StringEncoder(STRING_CHARSET));
