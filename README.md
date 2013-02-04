@@ -8,7 +8,7 @@ TODOs
 ===========
 
 - Make some unit tests (done)
-- Test on different machines
+- Test on different machines (done)
 - Test with different request messages (done)
 
 
@@ -69,7 +69,7 @@ For simple testing using netcat: http://en.wikipedia.org/wiki/Netcat
     nc localhost 1337
     nc -c localhost 1337 for line terminator (\r\n) testing
 
-Example:
+Some example:
 
     [01:32 AM] do-protocol$ echo -ne "DO hallo\n\n" | nc localhost 1337
     DONE 911b33ba90678bee998f75bb510757d1
@@ -96,6 +96,26 @@ Example:
 
     [03:59 PM] do-protocol$ echo -n X | tr X '\0000' | nc localhost 1337
     [03:59 PM] do-protocol$
+
+    [05:17 PM] do-protocol$ echo -ne "DO hallo\n\n" | nc cloud2.ibr.cs.tu-bs.de 8037
+    DONE 911b33ba90678bee998f75bb510757d1
+
+Stress test:
+
+    Server runs on cloud2.ibr.cs.tu-bs.de:8037. The start_clients.sh script
+    starts a lot of clients. After starting this script on three machines, the
+    server slows down but still alive =)
+    We can observe that simple request on a local machine needs more time to
+    process.
+
+    Starting some clients on three different machines:
+    bin/start_clients.sh
+
+    In that scenario, a request needs a little more time
+    echo -ne "DO hallo\n\n" | nc cloud2.ibr.cs.tu-bs.de 8037
+
+    See screen shot in bin/resources
+
 
 Used frameworks
 ===========
