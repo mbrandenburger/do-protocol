@@ -1,6 +1,9 @@
 package protocol.common;
 
 import org.jboss.netty.channel.*;
+import org.jboss.netty.handler.codec.frame.TooLongFrameException;
+import org.jboss.netty.handler.timeout.IdleStateAwareChannelHandler;
+import org.jboss.netty.handler.timeout.IdleStateEvent;
 import org.slf4j.LoggerFactory;
 
 import java.util.regex.Matcher;
@@ -14,7 +17,7 @@ import static org.jboss.netty.channel.Channels.fireMessageReceived;
  * Date: 2/1/13
  * Time: 11:47 PM
  */
-public class ProtocolHandler extends SimpleChannelHandler {
+public class ProtocolHandler extends IdleStateAwareChannelHandler {
 
     private static final org.slf4j.Logger log =
             LoggerFactory.getLogger(ProtocolHandler.class);
@@ -58,7 +61,7 @@ public class ProtocolHandler extends SimpleChannelHandler {
                         ProtocolMessageFactory.createRequest(matcher.group(2));
             } else {
                 // first line does not match expression
-                protocolError(ctx, "Invalid protocol exception");
+                protocolError(ctx, "InvalidProtocolException");
             }
         } else {
             // read header line
@@ -69,6 +72,10 @@ public class ProtocolHandler extends SimpleChannelHandler {
                 fireMessageReceived(ctx, resetBufferMessage());
             } else {
                 Matcher matcher = HEADER_REGEX.matcher(headerLine);
+                // TODO what will happen if client sends infinitive amount of
+                // header lines? For that case we should count headers and stop
+                // reading if maximum reaches we will send error message close
+                // connection
                 if (matcher.matches()) {
                     // group(1) = Key
                     // group(2) = Value
@@ -76,7 +83,7 @@ public class ProtocolHandler extends SimpleChannelHandler {
                             .addHeader(matcher.group(1), matcher.group(2));
                 } else {
                     // line does not match expression
-                    protocolError(ctx, "Invalid header format exception");
+                    protocolError(ctx, "InvalidHeaderFormatException");
                 }
             }
         }
@@ -85,6 +92,10 @@ public class ProtocolHandler extends SimpleChannelHandler {
     @Override
     public void writeRequested(ChannelHandlerContext ctx, MessageEvent e)
             throws Exception {
+
+        if(e.getMessage() == null ){
+            log.debug("null msg");
+        }
 
         // This is our protocol message encoder. It only forward
         // ProtocolMessages to the next Layer. In our case it is a
@@ -108,6 +119,19 @@ public class ProtocolHandler extends SimpleChannelHandler {
         }
     }
 
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
+        log.warn("Unexpected exception", e.getCause().getMessage());
+        // What will happen if framer rise exception because more than 4096
+        // character without \n in one line received. Framer would drop these
+        // character and continue reading. In that case, the server should send
+        // a bad protocol message to the client and close the connection.
+
+        if( e.getCause() instanceof TooLongFrameException ) {
+            protocolError(ctx, "TooLongFrameException");
+        }
+    }
+
     private ProtocolMessage resetBufferMessage() {
         ProtocolMessage message = this.bufferMessage;
         this.bufferMessage = null;
@@ -116,13 +140,35 @@ public class ProtocolHandler extends SimpleChannelHandler {
 
     private void protocolError(ChannelHandlerContext ctx, String parameter) {
 
-        ProtocolMessage errorMessage =
-                ProtocolMessageFactory.createBadProtocolMessage(parameter);
+        if (ctx.getChannel().isConnected()) {
+            ProtocolMessage errorMessage =
+                    ProtocolMessageFactory.createBadProtocolMessage(parameter);
 
-        ChannelFuture channelFuture = ctx.getChannel().write(errorMessage);
+            ChannelFuture channelFuture = ctx.getChannel().write(errorMessage);
 
-        channelFuture.addListener(ChannelFutureListener.CLOSE);
-        channelFuture.addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+            channelFuture.addListener(ChannelFutureListener.CLOSE);
+            channelFuture.addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+        }
+    }
+
+    @Override
+    public void channelIdle(ChannelHandlerContext ctx, IdleStateEvent e) {
+        log.warn("IdleAlarm! Closing channel " +
+                e.getChannel().getRemoteAddress());
+        protocolError(ctx, "TimeOutException");
+    }
+
+    @Override
+    public void channelConnected(ChannelHandlerContext ctx,
+                                 ChannelStateEvent e) {
+        log.debug("Connected to: " +
+                ctx.getChannel().getRemoteAddress().toString());
+    }
+
+    @Override
+    public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) {
+        log.debug("Channel closed: " +
+                ctx.getChannel().getRemoteAddress().toString());
     }
 
 }

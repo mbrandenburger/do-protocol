@@ -15,7 +15,7 @@ import protocol.common.ProtocolMessageFactory;
  * Date: 2/1/13
  * Time: 4:46 PM
  */
-public class ProtocolServerHandler extends IdleStateAwareChannelHandler {
+public class ProtocolServerHandler extends SimpleChannelHandler {
 
     private static final org.slf4j.Logger log =
             LoggerFactory.getLogger(ProtocolServerHandler.class);
@@ -74,28 +74,4 @@ public class ProtocolServerHandler extends IdleStateAwareChannelHandler {
         }
     }
 
-    @Override
-    public void channelIdle(ChannelHandlerContext ctx, IdleStateEvent e) {
-        log.warn("IdleAlarm! Closing channel " +
-                e.getChannel().getRemoteAddress());
-        e.getChannel().close();
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
-        log.warn("Unexpected exception", e.getCause().getMessage());
-    }
-
-    @Override
-    public void channelConnected(ChannelHandlerContext ctx,
-                                 ChannelStateEvent e) {
-        log.debug("Connected to: " +
-                ctx.getChannel().getRemoteAddress().toString());
-    }
-
-    @Override
-    public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) {
-        log.debug("Channel closed: " +
-                ctx.getChannel().getRemoteAddress().toString());
-    }
 }
