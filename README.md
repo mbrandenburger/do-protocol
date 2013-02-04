@@ -7,8 +7,9 @@ Simple DO protocol server, very similar to the HTTP protocol.
 TODOs
 ===========
 
+- Make some unit tests (done)
 - Test on different machines
-- Test with different request messages
+- Test with different request messages (done)
 
 
 Specification:
@@ -53,11 +54,11 @@ Run server:
     git clone https://github.com/mbrandenburger/do-protocol.git
     cd do-protocol
     mvn package
-    java -jar target/do-protocol-server-1.0-SNAPSHOT
+    java -jar target/do-protocol-server-1.0-SNAPSHOT-jar-with-dependencies.jar
 
 * or use host and port parameter
 
-    java -jar target/do-protocol-server-1.0-SNAPSHOT --port=$port$ --host=$host$
+    java -jar target/do-protocol-server-1.0-SNAPSHOT-jar-with-dependencies.jar --port=$port$ --host=$host$
 
 
 Test using netcat:
@@ -69,14 +70,6 @@ For simple testing using netcat: http://en.wikipedia.org/wiki/Netcat
     nc -c localhost 1337 for line terminator (\r\n) testing
 
 Example:
-
-    [01:36 AM] do-protocol$ echo -ne "" | nc localhost 1337
-
-    [01:36 AM] do-protocol$ echo -ne "\n" | nc localhost 1337
-    BAD Invalid protocol exception
-
-    [01:36 AM] do-protocol$ echo -ne "\n\n" | nc localhost 1337
-    BAD Invalid protocol exception
 
     [01:32 AM] do-protocol$ echo -ne "DO hallo\n\n" | nc localhost 1337
     DONE 911b33ba90678bee998f75bb510757d1
@@ -90,14 +83,40 @@ Example:
     [01:33 AM] do-protocol$ echo -ne "DO hallo\nkey: value\n\n" | nc localhost 1337
     DONE 911b33ba90678bee998f75bb510757d1
 
+    [01:36 AM] do-protocol$ echo -ne "" | nc localhost 1337
+
+    [01:36 AM] do-protocol$ echo -ne "\n" | nc localhost 1337
+    BAD Invalid protocol exception
+
+    [01:36 AM] do-protocol$ echo -ne "\n\n" | nc localhost 1337
+    BAD Invalid protocol exception
+
+    [03:59 PM] do-protocol$ cat TooLongData | nc localhost 1337
+    BAD TooLongFrameException
+
+    [03:59 PM] do-protocol$ echo -n X | tr X '\0000' | nc localhost 1337
+    [03:59 PM] do-protocol$
 
 Used frameworks
 ===========
 
 - Netty http://static.netty.io/
+    Well known framework for network applications. Deals easily with different
+    error scenarios e.g. Client timeouts, maximum amount of data. It handles all
+    connections in a given thread pool.
+
 - Google guava-library https://code.google.com/p/guava-libraries/
+    Provides several hashing functions such as MD5 or SHA-1.
+
 - Apache Commons CLI http://commons.apache.org/cli/
+    Simplifies command line argument parsing.
+
 - Simple Logging Facade for Java http://www.slf4j.org/
+    For flexible logging.
+
+- JUnit http://junit.sourceforge.net/
+    Used for testing regular expressions and for the protocol message object.
+
 
 
 Resources
