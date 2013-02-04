@@ -22,6 +22,7 @@ public class ProtocolHandlerTest extends TestCase {
         HashMap<String, Boolean> testStrings = new HashMap<String, Boolean>();
         testStrings.put("DO HalloWorld", Boolean.TRUE);
         testStrings.put("DO HeloWorld///___---1230", Boolean.TRUE);
+        testStrings.put("BLUB_DO Hello%%%%", Boolean.FALSE);
         testStrings.put("DO  Hello", Boolean.TRUE);
         testStrings.put("DO  Hello ", Boolean.FALSE);
         testStrings.put("DO !Hello", Boolean.FALSE);
@@ -50,6 +51,7 @@ public class ProtocolHandlerTest extends TestCase {
         testStrings.put("0123das-123/_ 123-asd", Boolean.FALSE);
         testStrings.put("0123das-123 123-asd", Boolean.FALSE);
         testStrings.put("012/_3das-123: 123-asd", Boolean.FALSE);
+        testStrings.put("BLUB_DO Hello%%%%", Boolean.FALSE);
         testStrings.put("_: -", Boolean.TRUE);
         testStrings.put("-: _", Boolean.TRUE);
         testStrings.put("", Boolean.FALSE);
